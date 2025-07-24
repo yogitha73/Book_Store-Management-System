@@ -59,3 +59,33 @@ class DataManager:
             if book['isbn'] == isbn:
                 return book
         return None
+ def book_exists_by_isbn(self, isbn: str) -> bool:
+        """Check if a book with the given ISBN exists"""
+        return self.get_book_by_isbn(isbn) is not None
+    
+    def create_book(self, book_data: Dict) -> Dict:
+        """Create a new book"""
+        data = self._load_data()
+        
+        # Create new book with ID
+        new_book = {
+            'id': data['next_id'],
+            'title': book_data['title'].strip(),
+            'author': book_data['author'].strip(),
+            'isbn': book_data['isbn'].strip(),
+            'price': float(book_data['price']),
+            'quantity': int(book_data['quantity']),
+            'created_at': datetime.now().isoformat(),
+            'updated_at': datetime.now().isoformat()
+        }
+        
+        # Add optional fields
+        if 'description' in book_data and book_data['description']:
+            new_book['description'] = book_data['description'].strip()
+        if 'genre' in book_data and book_data['genre']:
+            new_book['genre'] = book_data['genre'].strip()
+        
+        # Add book to data
+        data['books'].append(new_book)
+        data['next_id'] += 1
+        
