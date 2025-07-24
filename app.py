@@ -168,4 +168,49 @@ def update_book(book_id):
             'error': str(e),
             'message': 'Failed to update book'
         }), 500
+        @app.route('/api/books/<int:book_id>', methods=['DELETE'])
+def delete_book(book_id):
+    """Delete a book"""
+    try:
+        # Check if book exists
+        if not data_manager.get_book_by_id(book_id):
+            return jsonify({
+                'success': False,
+                'error': 'Book not found',
+                'message': f'Book with ID {book_id} does not exist'
+            }), 404
+        
+        data_manager.delete_book(book_id)
+        return jsonify({
+            'success': True,
+            'message': 'Book deleted successfully'
+        })
+        
+    except Exception as e:
+        app.logger.error(f"Error deleting book {book_id}: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'message': 'Failed to delete book'
+        }), 500
+
+@app.errorhandler(404)
+def not_found(error):
+    return jsonify({
+        'success': False,
+        'error': 'Endpoint not found',
+        'message': 'The requested endpoint does not exist'
+    }), 404
+
+@app.errorhandler(500)
+def internal_error(error):
+    return jsonify({
+        'success': False,
+        'error': 'Internal server error',
+        'message': 'An unexpected error occurred'
+    }), 500
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000, debug=True)
+
 
