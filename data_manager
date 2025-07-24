@@ -88,4 +88,39 @@ class DataManager:
         # Add book to data
         data['books'].append(new_book)
         data['next_id'] += 1
+ # Save data
+        self._save_data(data)
+        
+        return new_book
+    
+    def update_book(self, book_id: int, update_data: Dict) -> Dict:
+        """Update an existing book"""
+        data = self._load_data()
+        
+        # Find the book
+        book_index = None
+        for i, book in enumerate(data['books']):
+            if book['id'] == book_id:
+                book_index = i
+                break
+        
+        if book_index is None:
+            raise Exception(f"Book with ID {book_id} not found")
+        
+        # Update the book
+        book = data['books'][book_index]
+        
+        # Update fields that are provided
+        updatable_fields = ['title', 'author', 'isbn', 'price', 'quantity', 'description', 'genre']
+        for field in updatable_fields:
+            if field in update_data and update_data[field] is not None:
+                if field in ['title', 'author', 'isbn', 'description', 'genre']:
+                    book[field] = update_data[field].strip()
+                elif field == 'price':
+                    book[field] = float(update_data[field])
+                elif field == 'quantity':
+                    book[field] = int(update_data[field])
+        
+        book['updated_at'] = datetime.now().isoformat()
+        
         
