@@ -47,4 +47,42 @@ def get_book(book_id):
                 'message': 'Book retrieved successfully'
             })
         else:
+            return jsonify({ 
+                       'success': False,
+                'error': 'Book not found',
+                'message': f'Book with ID {book_id} does not exist'
+            }), 404
+    except Exception as e:
+        app.logger.error(f"Error getting book {book_id}: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'message': 'Failed to retrieve book'
+        }), 500
+
+@app.route('/api/books', methods=['POST'])
+def create_book():
+    """Create a new book"""
+    try:
+        data = request.get_json()
+        
+        # Validate required fields
+        required_fields = ['title', 'author', 'isbn', 'price', 'quantity']
+        for field in required_fields:
+            if field not in data or not data[field]:
+                return jsonify({
+                    'success': False,
+                    'error': f'Missing required field: {field}',
+                    'message': 'Please provide all required fields'
+                }), 400
+        
+        # Validate data types
+ try:
+            data['price'] = float(data['price'])
+            data['quantity'] = int(data['quantity'])
+        except ValueError:
             return jsonify({
+                'success': False,
+                'error': 'Invalid data type',
+                'message': 'Price must be a number and quantity must be an integer'
+            }), 400
