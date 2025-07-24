@@ -321,7 +321,7 @@ class BookStoreApp {
         return div.innerHTML;
     }
 
-    updateStatistics(books) {
+      updateStatistics(books) {
         // Total books
         document.getElementById('totalBooks').textContent = books.length;
         
