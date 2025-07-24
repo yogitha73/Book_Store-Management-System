@@ -1,1 +1,61 @@
+import json
+import os
+from datetime import datetime
+from typing import Dict, List, Optional
 
+class DataManager:
+    """Handles all data operations for the bookstore system"""
+    
+    def __init__(self, data_file: str = 'data/books.json'):
+        self.data_file = data_file
+        self.ensure_data_file_exists()
+    
+    def ensure_data_file_exists(self):
+        """Ensure the data directory and file exist"""
+        os.makedirs(os.path.dirname(self.data_file), exist_ok=True)
+        
+        if not os.path.exists(self.data_file):
+            initial_data = {
+                'books': [],
+                'next_id': 1,
+                'last_updated': datetime.now().isoformat()
+            }
+            self._save_data(initial_data)
+    
+    def _load_data(self) -> Dict:
+        """Load data from JSON file"""
+        try:
+            with open(self.data_file, 'r', encoding='utf-8') as file:
+                return json.load(file)
+        except (FileNotFoundError, json.JSONDecodeError) as e:
+            raise Exception(f"Failed to load data: {str(e)}")
+    
+    def _save_data(self, data: Dict):
+        """Save data to JSON file"""
+        try:
+            data['last_updated'] = datetime.now().isoformat()
+            with open(self.data_file, 'w', encoding='utf-8') as file:
+                json.dump(data, file, indent=2, ensure_ascii=False)
+        except Exception as e:
+            raise Exception(f"Failed to save data: {str(e)}")
+    
+    def get_all_books(self) -> List[Dict]:
+        """Get all books from the database"""
+        data = self._load_data()
+        return data.get('books', [])
+    
+    def get_book_by_id(self, book_id: int) -> Optional[Dict]:
+        """Get a specific book by ID"""
+        books = self.get_all_books()
+        for book in books:
+            if book['id'] == book_id:
+                return book
+        return None
+    
+    def get_book_by_isbn(self, isbn: str) -> Optional[Dict]:
+        """Get a specific book by ISBN"""
+        books = self.get_all_books()
+        for book in books:
+            if book['isbn'] == isbn:
+                return book
+        return None
