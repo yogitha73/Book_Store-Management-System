@@ -122,5 +122,47 @@ class DataManager:
                     book[field] = int(update_data[field])
         
         book['updated_at'] = datetime.now().isoformat()
+ book['updated_at'] = datetime.now().isoformat()
+        
+        # Save data
+        self._save_data(data)
+        
+        return book
+    
+    def delete_book(self, book_id: int) -> bool:
+        """Delete a book"""
+        data = self._load_data()
+        
+        # Find and remove the book
+        original_length = len(data['books'])
+        data['books'] = [book for book in data['books'] if book['id'] != book_id]
+        
+        if len(data['books']) == original_length:
+            raise Exception(f"Book with ID {book_id} not found")
+        
+        # Save data
+        self._save_data(data)
+        
+        return True
+    
+    def search_books(self, query: str) -> List[Dict]:
+        """Search books by title or author"""
+        books = self.get_all_books()
+        query_lower = query.lower()
+        
+        results = []
+        for book in books:
+            if (query_lower in book['title'].lower() or 
+                query_lower in book['author'].lower() or
+                query_lower in book.get('genre', '').lower()):
+                results.append(book)
+        
+        return results
+    
+    def get_low_stock_books(self, threshold: int = 5) -> List[Dict]:
+        """Get books with low stock"""
+        books = self.get_all_books()
+        return [book for book in books if book['quantity'] <= threshold]
+
         
         
