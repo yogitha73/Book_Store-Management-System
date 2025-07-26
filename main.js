@@ -1,3 +1,4 @@
+
 class BookStoreApp {
     constructor() {
         this.currentEditingId = null;
