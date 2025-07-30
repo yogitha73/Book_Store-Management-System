@@ -207,6 +207,75 @@ class TestCRUDOperations(unittest.TestCase):
                 'quantity': 12,
                 'genre': 'Mystery'
             }
+        ]  
+ for book in books:
+            self.data_manager.create_book(book)
+        
+        # Test search by title
+        results = self.data_manager.search_books('Python')
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0]['title'], 'Python Programming')
+        
+        # Test search by author
+        results = self.data_manager.search_books('Jane')
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0]['author'], 'Jane Smith')
+        
+        # Test search by genre
+        results = self.data_manager.search_books('Programming')
+        self.assertEqual(len(results), 2)
+        
+        # Test case-insensitive search
+        results = self.data_manager.search_books('python')
+        self.assertEqual(len(results), 1)
+        
+        # Test no results
+        results = self.data_manager.search_books('Nonexistent')
+        self.assertEqual(len(results), 0)
+    
+    def test_low_stock_books(self):
+        """Test low stock functionality"""
+        # Create books with different quantities
+        books = [
+            {
+                'title': 'High Stock Book',
+                'author': 'Author 1',
+                'isbn': '978-1-111111-11-1',
+                'price': 29.99,
+                'quantity': 20
+            },
+            {
+                'title': 'Low Stock Book 1',
+                'author': 'Author 2',
+                'isbn': '978-2-222222-22-2',
+                'price': 29.99,
+                'quantity': 3
+            },
+            {
+                'title': 'Low Stock Book 2',
+                'author': 'Author 3',
+                'isbn': '978-3-333333-33-3',
+                'price': 29.99,
+                'quantity': 1
+            }
         ]
+        
+        for book in books:
+            self.data_manager.create_book(book)
+        
+        # Test default threshold (5)
+        low_stock = self.data_manager.get_low_stock_books()
+        self.assertEqual(len(low_stock), 2)
+        
+        # Test custom threshold
+        low_stock = self.data_manager.get_low_stock_books(threshold=10)
+        self.assertEqual(len(low_stock), 2)
+        
+        low_stock = self.data_manager.get_low_stock_books(threshold=1)
+        self.assertEqual(len(low_stock), 1)
+
+if __name__ == '__main__':
+    unittest.main()
+
         
         
