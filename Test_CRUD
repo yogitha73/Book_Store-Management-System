@@ -19,3 +19,48 @@ class TestCRUDOperations(unittest.TestCase):
         }
         json.dump(initial_data, self.test_file, indent=2)
         self.test_file.close()
+# Initialize DataManager with test file
+        self.data_manager = DataManager(self.test_file.name)
+        
+        # Sample book data for testing
+        self.sample_book = {
+            'title': 'Test Book',
+            'author': 'Test Author',
+            'isbn': '978-0-123456-78-9',
+            'price': 29.99,
+            'quantity': 10,
+            'genre': 'Fiction',
+            'description': 'A test book for unit testing'
+        }
+    
+    def tearDown(self):
+        """Clean up after each test method"""
+        # Remove the temporary test file
+        try:
+            os.unlink(self.test_file.name)
+        except FileNotFoundError:
+            pass
+    
+    def test_create_book(self):
+        """Test creating a new book"""
+        # Create a book
+        book = self.data_manager.create_book(self.sample_book)
+        
+        # Verify book was created with correct data
+        self.assertEqual(book['title'], self.sample_book['title'])
+        self.assertEqual(book['author'], self.sample_book['author'])
+        self.assertEqual(book['isbn'], self.sample_book['isbn'])
+        self.assertEqual(book['price'], self.sample_book['price'])
+        self.assertEqual(book['quantity'], self.sample_book['quantity'])
+        self.assertEqual(book['genre'], self.sample_book['genre'])
+        self.assertEqual(book['description'], self.sample_book['description'])
+        
+        # Verify book has ID and timestamps
+        self.assertIsNotNone(book['id'])
+        self.assertIsNotNone(book['created_at'])
+        self.assertIsNotNone(book['updated_at'])
+        
+        # Verify book exists in data
+        all_books = self.data_manager.get_all_books()
+        self.assertEqual(len(all_books), 1)
+        self.assertEqual(all_books[0]['id'], book['id'])
