@@ -1,1 +1,19 @@
+import json
+import os
+import tempfile
+from app import app
+from data_manager import DataManager
 
+class TestIntegration(unittest.TestCase):
+    """Integration tests for frontend-backend interaction"""
+    
+    def setUp(self):
+        """Set up test fixtures before each test method"""
+        # Create a temporary file for testing
+        self.test_file = tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False)
+        # Initialize with valid JSON structure
+        initial_data = {
+            'books': [],
+            'next_id': 1,
+            'last_updated': '2023-01-01T00:00:00.000000'
+        }
