@@ -168,4 +168,122 @@ json.dump(initial_data, self.test_file, indent=2)
         not_found_data = json.loads(response.data)
         self.assertFalse(not_found_data['success'])
         self.assertIn('Book not found', not_found_data['error'])
+
+ # Test 4: Update non-existent book
+        update_data = {'title': 'Updated Title'}
         
+        response = self.client.put('/api/books/999',
+                                 data=json.dumps(update_data),
+                                 content_type='application/json')
+        
+        self.assertEqual(response.status_code, 404)
+        error_data = json.loads(response.data)
+        self.assertFalse(error_data['success'])
+        self.assertIn('Book not found', error_data['error'])
+        
+        # Test 5: Delete non-existent book
+        response = self.client.delete('/api/books/999')
+        self.assertEqual(response.status_code, 404)
+        
+        error_data = json.loads(response.data)
+        self.assertFalse(error_data['success'])
+        self.assertIn('Book not found', error_data['error'])
+    
+    def test_isbn_uniqueness_validation(self):
+        """Test ISBN uniqueness validation"""
+        
+        # Create first book
+        response = self.client.post('/api/books',
+                                  data=json.dumps(self.sample_book),
+                                  content_type='application/json')
+        
+        self.assertEqual(response.status_code, 201)
+        
+        # Try to create another book with same ISBN
+        duplicate_book = self.sample_book.copy()
+        duplicate_book['title'] = 'Different Title'
+        
+        response = self.client.post('/api/books',
+                                  data=json.dumps(duplicate_book),
+                                  content_type='application/json')
+        
+        self.assertEqual(response.status_code, 400)
+        error_data = json.loads(response.data)
+        self.assertFalse(error_data['success'])
+        self.assertIn('ISBN already exists', error_data['error'])
+    
+    def test_frontend_html_rendering(self):
+        """Test that frontend HTML is properly rendered"""
+        
+        # Test main page renders
+        response = self.client.get('/')
+        self.assertEqual(response.status_code, 200)
+        
+        # Check that essential HTML elements are present
+        html_content = response.data.decode('utf-8')
+        
+        # Check for main page elements
+        self.assertIn('BookStore Management System', html_content)
+        self.assertIn('Add New Book', html_content)
+        self.assertIn('Book Inventory', html_content)
+        self.assertIn('bookForm', html_content)
+        
+        # Check for required form fields
+        self.assertIn('name="title"', html_content)
+        self.assertIn('name="author"', html_content)
+        self.assertIn('name="isbn"', html_content)
+        self.assertIn('name="price"', html_content)
+        self.assertIn('name="quantity"', html_content)
+        
+        # Check for Bootstrap CSS
+        self.assertIn('bootstrap', html_content)
+        
+        # Check for JavaScript file
+        self.assertIn('main.js', html_content)
+    
+    def test_json_response_format(self):
+        """Test that all API responses follow the expected JSON format"""
+        
+        # Create a book first
+        response = self.client.post('/api/books',
+                                  data=json.dumps(self.sample_book),
+                                  content_type='application/json')
+        
+        data = json.loads(response.data)
+        book_id = data['data']['id']
+        
+        # Test all endpoints return consistent JSON structure
+        endpoints = [
+            ('GET', '/api/books', 200),
+            ('GET', f'/api/books/{book_id}', 200),
+            ('PUT', f'/api/books/{book_id}', 200),
+            ('DELETE', f'/api/books/{book_id}', 200),
+        ]
+        
+        for method, endpoint, expected_status in endpoints:
+            if method == 'GET':
+                response = self.client.get(endpoint)
+            elif method == 'PUT':
+                response = self.client.put(endpoint,
+                                         data=json.dumps({'title': 'Updated Title'}),
+                                         content_type='application/json')
+            elif method == 'DELETE':
+                response = self.client.delete(endpoint)
+            
+            self.assertEqual(response.status_code, expected_status)
+            
+            data = json.loads(response.data)
+            
+            # Check required fields in response
+            self.assertIn('success', data)
+            self.assertIn('message', data)
+            self.assertIsInstance(data['success'], bool)
+            self.assertIsInstance(data['message'], str)
+            
+            # If success is True and not DELETE, should have data
+            if data['success'] and method != 'DELETE':
+                self.assertIn('data', data)
+
+if __name__ == '__main__':
+    unittest.main()
+
