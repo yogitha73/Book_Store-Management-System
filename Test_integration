@@ -52,4 +52,120 @@ json.dump(initial_data, self.test_file, indent=2)
     
     def test_frontend_backend_interaction(self):
         """Test complete frontend-backend interaction flow"""
+ # Test 1: Create a book via API
+        response = self.client.post('/api/books', 
+                                  data=json.dumps(self.sample_book),
+                                  content_type='application/json')
+        
+        self.assertEqual(response.status_code, 201)
+        create_data = json.loads(response.data)
+        self.assertTrue(create_data['success'])
+        self.assertEqual(create_data['data']['title'], self.sample_book['title'])
+        
+        book_id = create_data['data']['id']
+        
+        # Test 2: Retrieve all books via API
+        response = self.client.get('/api/books')
+        self.assertEqual(response.status_code, 200)
+        
+        get_data = json.loads(response.data)
+        self.assertTrue(get_data['success'])
+        self.assertEqual(len(get_data['data']), 1)
+        self.assertEqual(get_data['data'][0]['id'], book_id)
+        
+        # Test 3: Retrieve specific book via API
+        response = self.client.get(f'/api/books/{book_id}')
+        self.assertEqual(response.status_code, 200)
+        
+        get_single_data = json.loads(response.data)
+        self.assertTrue(get_single_data['success'])
+        self.assertEqual(get_single_data['data']['title'], self.sample_book['title'])
+        
+        # Test 4: Update book via API
+        update_data = {
+            'title': 'Updated Integration Test Book',
+            'price': 39.99,
+            'quantity': 15
+        }
+        
+        response = self.client.put(f'/api/books/{book_id}',
+                                 data=json.dumps(update_data),
+                                 content_type='application/json')
+        
+        self.assertEqual(response.status_code, 200)
+        update_response = json.loads(response.data)
+        self.assertTrue(update_response['success'])
+        self.assertEqual(update_response['data']['title'], update_data['title'])
+        self.assertEqual(update_response['data']['price'], update_data['price'])
+        
+        # Test 5: Verify update persisted
+        response = self.client.get(f'/api/books/{book_id}')
+        self.assertEqual(response.status_code, 200)
+        
+        verify_data = json.loads(response.data)
+        self.assertTrue(verify_data['success'])
+        self.assertEqual(verify_data['data']['title'], update_data['title'])
+        self.assertEqual(verify_data['data']['price'], update_data['price'])
+        
+        # Test 6: Delete book via API
+        response = self.client.delete(f'/api/books/{book_id}')
+        self.assertEqual(response.status_code, 200)
+        
+        delete_data = json.loads(response.data)
+        self.assertTrue(delete_data['success'])
+        
+        # Test 7: Verify deletion
+        response = self.client.get(f'/api/books/{book_id}')
+        self.assertEqual(response.status_code, 404)
+        
+        not_found_data = json.loads(response.data)
+        self.assertFalse(not_found_data['success'])
+        
+        # Test 8: Verify empty list
+        response = self.client.get('/api/books')
+        self.assertEqual(response.status_code, 200)
+        
+        empty_data = json.loads(response.data)
+        self.assertTrue(empty_data['success'])
+        self.assertEqual(len(empty_data['data']), 0)
+    
+    def test_error_handling(self):
+        """Test error handling in API endpoints"""
+        
+        # Test 1: Create book with missing required fields
+        incomplete_book = {
+            'title': 'Incomplete Book',
+            'author': 'Test Author'
+            # Missing isbn, price, quantity
+        }
+        
+        response = self.client.post('/api/books',
+                                  data=json.dumps(incomplete_book),
+                                  content_type='application/json')
+        
+        self.assertEqual(response.status_code, 400)
+        error_data = json.loads(response.data)
+        self.assertFalse(error_data['success'])
+        self.assertIn('Missing required field', error_data['error'])
+        
+        # Test 2: Create book with invalid data types
+        invalid_book = self.sample_book.copy()
+        invalid_book['price'] = 'not-a-number'
+        
+        response = self.client.post('/api/books',
+                                  data=json.dumps(invalid_book),
+                                  content_type='application/json')
+        
+        self.assertEqual(response.status_code, 400)
+        error_data = json.loads(response.data)
+        self.assertFalse(error_data['success'])
+        self.assertIn('Invalid data type', error_data['error'])
+        
+        # Test 3: Get non-existent book
+        response = self.client.get('/api/books/999')
+        self.assertEqual(response.status_code, 404)
+        
+        not_found_data = json.loads(response.data)
+        self.assertFalse(not_found_data['success'])
+        self.assertIn('Book not found', not_found_data['error'])
         
