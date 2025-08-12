@@ -97,38 +97,14 @@ All API responses follow this JSON structure:
 - Open your browser and navigate to `http://localhost:5000`
 - The application will be available on all network interfaces
 
-## File Structure
-```
-bookstore-management/
-├── app.py                 # Main Flask application
-├── main.py                # Application entry point
-├── data_manager.py        # Data operations handler
-├── data/
-│   └── books.json         # JSON data storage
-├── templates/
-│   └── index.html         # Frontend template
-├── static/
-│   └── js/
-│       └── main.js        # Frontend JavaScript
-├── tests/
-│   ├── test_crud.py       # Unit tests
-│   └── test_integration.py # Integration tests
-└── README.md              # This file
-```
 
 ## Testing
 
 ### Unit Tests
-Run CRUD operation tests:
-```bash
-python -m unittest tests.test_crud
-```
+
 
 ### Integration Tests
-Run frontend-backend integration tests:
-```bash
-python -m unittest tests.test_integration
-```
+
 
 ### Test Coverage
 - CRUD operations testing
